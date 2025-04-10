@@ -1,0 +1,9 @@
+.DS_Store
+/.idea
+/target
+**/artifacts/*
+/schema
+# raw json schema files
+**/raw/*.json
+
+tmp.json

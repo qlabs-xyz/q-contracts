@@ -1,0 +1,6 @@
+{
+  "increase_allowance": {
+    "amount": "1000000000",
+    "spender": $spender
+  }
+}
