@@ -1,0 +1,8 @@
+[package]
+name = "q-utils"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+cosmwasm-std = { workspace = true }
