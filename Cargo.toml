@@ -1,0 +1,30 @@
+[workspace]
+members = ["contracts/*", "packages/*"]
+
+# Resolver has to be set explicitely in workspaces, see https://github.com/rust-lang/cargo/issues/9956
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+
+[workspace.dependencies]
+cosmwasm-schema = { version = "2.0.0" }
+cosmwasm-std = { version = "2.0.0" }
+
+cw-controllers = { version = "2.0.0" }
+cw-multi-test = { version = "2.0.0" }
+cw-storage-plus = { version = "2.0.0" }
+cw-utils = { version = "2.0.0" }
+cw-ownable = "2.1.0"
+
+serde = { version = "1.0.204" }
+schemars = { version = "0.8.15"}
+semver = "1"
+thiserror = { version = "1.0.4" }
+
+cw2 = { version = "2.0.0" }
+cw20 = { version = "2.0.0" }
+cw20-base = { version = "2.0.0" }
+
