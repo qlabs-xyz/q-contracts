@@ -1,0 +1,27 @@
+[package]
+name = "consumption-unit"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+## for more explicit tests, cargo test --features=backtraces
+# backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-storage-plus = { workspace = true }
+serde = { workspace = true }
+cw2 = { workspace = true }
+cw721 = { workspace = true }
+cw20 = { workspace = true }
+thiserror = { workspace = true }
+cw-ownable = { workspace = true }
+
+[dev-dependencies]
+cw-multi-test = { workspace = true }
