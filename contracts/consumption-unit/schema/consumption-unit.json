@@ -212,17 +212,18 @@
         "description": "ConsumptionUnit public data",
         "type": "object",
         "required": [
-          "commitment_pool_id",
+          "commitment_tier",
           "consumption_value",
           "created_at",
           "floor_price",
           "hashes",
           "nominal_currency",
           "nominal_quantity",
+          "state",
           "updated_at"
         ],
         "properties": {
-          "commitment_pool_id": {
+          "commitment_tier": {
             "description": "Where the CU is allocated by the User. A user can change commitment Pool at any time prior to CU NFT selection in raffle",
             "type": "integer",
             "format": "uint16",
@@ -266,6 +267,14 @@
               }
             ]
           },
+          "state": {
+            "description": "State of the record",
+            "allOf": [
+              {
+                "$ref": "#/definitions/ConsumptionUnitState"
+              }
+            ]
+          },
           "updated_at": {
             "$ref": "#/definitions/Timestamp"
           }
@@ -284,10 +293,10 @@
               "update_pool": {
                 "type": "object",
                 "required": [
-                  "new_commitment_pool_id"
+                  "new_commitment_tier_id"
                 ],
                 "properties": {
-                  "new_commitment_pool_id": {
+                  "new_commitment_tier_id": {
                     "type": "integer",
                     "format": "uint16",
                     "minimum": 0.0
@@ -297,6 +306,31 @@
               }
             },
             "additionalProperties": false
+          }
+        ]
+      },
+      "ConsumptionUnitState": {
+        "oneOf": [
+          {
+            "description": "Created on the Network",
+            "type": "string",
+            "enum": [
+              "reflected"
+            ]
+          },
+          {
+            "description": "Participating in Raffle (Commitment pool and consequently floorPrice can be changed)",
+            "type": "string",
+            "enum": [
+              "nominated"
+            ]
+          },
+          {
+            "description": "Was selected as a winner in Raffle (Commitment pool and consequently floorPrice cannot be changed)",
+            "type": "string",
+            "enum": [
+              "selected"
+            ]
           }
         ]
       },
@@ -810,17 +844,18 @@
           "description": "ConsumptionUnit public data",
           "type": "object",
           "required": [
-            "commitment_pool_id",
+            "commitment_tier",
             "consumption_value",
             "created_at",
             "floor_price",
             "hashes",
             "nominal_currency",
             "nominal_quantity",
+            "state",
             "updated_at"
           ],
           "properties": {
-            "commitment_pool_id": {
+            "commitment_tier": {
               "description": "Where the CU is allocated by the User. A user can change commitment Pool at any time prior to CU NFT selection in raffle",
               "type": "integer",
               "format": "uint16",
@@ -864,11 +899,44 @@
                 }
               ]
             },
+            "state": {
+              "description": "State of the record",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ConsumptionUnitState"
+                }
+              ]
+            },
             "updated_at": {
               "$ref": "#/definitions/Timestamp"
             }
           },
           "additionalProperties": false
+        },
+        "ConsumptionUnitState": {
+          "oneOf": [
+            {
+              "description": "Created on the Network",
+              "type": "string",
+              "enum": [
+                "reflected"
+              ]
+            },
+            {
+              "description": "Participating in Raffle (Commitment pool and consequently floorPrice can be changed)",
+              "type": "string",
+              "enum": [
+                "nominated"
+              ]
+            },
+            {
+              "description": "Was selected as a winner in Raffle (Commitment pool and consequently floorPrice cannot be changed)",
+              "type": "string",
+              "enum": [
+                "selected"
+              ]
+            }
+          ]
         },
         "Decimal": {
           "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",

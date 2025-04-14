@@ -1,7 +1,7 @@
 use crate::error::ContractError;
 use crate::msg::{ConsumptionUnitExtensionUpdate, ExecuteMsg, InstantiateMsg, MigrateMsg};
 use crate::state::{CUConfig, CU_CONFIG};
-use crate::types::{ConsumptionUnitData, ConsumptionUnitNft};
+use crate::types::{ConsumptionUnitData, ConsumptionUnitNft, ConsumptionUnitState};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{DepsMut, Env, Event, MessageInfo, Response};
@@ -86,16 +86,16 @@ pub fn execute(
             owner,
             token_uri,
             extension,
-        } => mint(deps, &env, &info, token_id, owner, token_uri, extension),
-        ExecuteMsg::Burn { token_id } => burn(deps, &env, &info, token_id),
+        } => execute_mint(deps, &env, &info, token_id, owner, token_uri, extension),
+        ExecuteMsg::Burn { token_id } => execute_burn(deps, &env, &info, token_id),
         ExecuteMsg::UpdateNftInfo {
             token_id,
             extension,
-        } => update_nft_info(deps, &env, &info, token_id, extension),
+        } => execute_update_nft_info(deps, &env, &info, token_id, extension),
     }
 }
 
-fn update_nft_info(
+fn execute_update_nft_info(
     deps: DepsMut,
     env: &Env,
     info: &MessageInfo,
@@ -106,7 +106,7 @@ fn update_nft_info(
 
     match update {
         ConsumptionUnitExtensionUpdate::UpdatePool {
-            new_commitment_pool_id,
+            new_commitment_tier_id,
         } => {
             let mut current_nft_info = config.nft_info.load(deps.storage, &token_id)?;
             if current_nft_info.owner != info.sender {
@@ -115,9 +115,13 @@ fn update_nft_info(
                 ));
             }
 
+            if current_nft_info.extension.state == ConsumptionUnitState::Selected {
+                return Err(ContractError::WrongInput {});
+            }
+
             current_nft_info.extension = current_nft_info
                 .extension
-                .update_pool(new_commitment_pool_id, env);
+                .update_tier(new_commitment_tier_id, env);
 
             config
                 .nft_info
@@ -130,7 +134,7 @@ fn update_nft_info(
                         .add_attribute("token_id", token_id)
                         .add_attribute(
                             "new_commitment_pool_id",
-                            new_commitment_pool_id.to_string(),
+                            new_commitment_tier_id.to_string(),
                         ),
                 ))
         }
@@ -138,7 +142,7 @@ fn update_nft_info(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn mint(
+fn execute_mint(
     deps: DepsMut,
     _env: &Env,
     info: &MessageInfo,
@@ -180,7 +184,7 @@ fn mint(
         ))
 }
 
-fn burn(
+fn execute_burn(
     deps: DepsMut,
     env: &Env,
     info: &MessageInfo,

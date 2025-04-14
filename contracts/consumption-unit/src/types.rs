@@ -13,7 +13,9 @@ pub struct ConsumptionUnitData {
     pub nominal_currency: String,
     /// Where the CU is allocated by the User.
     /// A user can change commitment Pool at any time prior to CU NFT selection in raffle
-    pub commitment_pool_id: u16,
+    pub commitment_tier: u16,
+    /// State of the record
+    pub state: ConsumptionUnitState,
     /// Calculated according to initial Native Coin Price, PGT, and allocated Commitment Pool.
     /// FloorPrice is to be re-calculated each time out of the update of the Commitment Pool
     pub floor_price: Decimal,
@@ -23,14 +25,25 @@ pub struct ConsumptionUnitData {
     pub updated_at: Timestamp,
 }
 
+#[cw_serde]
+pub enum ConsumptionUnitState {
+    /// Created on the Network
+    Reflected,
+    /// Participating in Raffle (Commitment pool and consequently floorPrice can be changed)
+    Nominated,
+    /// Was selected as a winner in Raffle
+    /// (Commitment pool and consequently floorPrice cannot be changed)
+    Selected,
+}
+
 pub type ConsumptionUnitNft = NftInfo<ConsumptionUnitData>;
 
 impl cw721::traits::Cw721State for ConsumptionUnitData {}
 impl cw721::traits::Cw721CustomMsg for ConsumptionUnitData {}
 
 impl ConsumptionUnitData {
-    pub fn update_pool(mut self, new_commitment_pool_id: u16, env: &Env) -> Self {
-        self.commitment_pool_id = new_commitment_pool_id;
+    pub fn update_tier(mut self, new_tier_id: u16, env: &Env) -> Self {
+        self.commitment_tier = new_tier_id;
         self.updated_at = env.block.time;
         self
     }
