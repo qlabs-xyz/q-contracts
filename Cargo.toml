@@ -1,5 +1,6 @@
 [workspace]
-members = ["contracts/*", "packages/*"]
+#members = ["contracts/*", "packages/*"]
+members = ["packages/*"]
 
 # Resolver has to be set explicitely in workspaces, see https://github.com/rust-lang/cargo/issues/9956
 resolver = "2"
@@ -8,24 +9,26 @@ resolver = "2"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.78"
+license       = "TODO"
+repository    = "https://github.com/qlabs-xyz/q-contracts"
+homepage      = "TODO"
+documentation = "TODO"
 
 [workspace.dependencies]
-cosmwasm-std = { version = "1.5.5" }
-cosmwasm-schema = { version = "1.5.5" }
+cosmwasm-schema = { version = "2.0.0" }
+cosmwasm-std = { version = "2.0.0" }
 
-cw-multi-test = { version = "^0.20", features = ["cosmwasm_1_2"] }
-cw-storage-plus = { version = "^1.1" }
-cw-utils = { version = "^1.0" }
-cw-ownable = { git = "https://github.com/public-awesome/cw-plus-plus.git", rev = "28c1a09bfc6b4f1942fefe3eb0b50faf9d3b1523" } # TODO: switch to official https://github.com/larry0x/cw-plus-plus once merged
-
+cw-multi-test = { version = "2.0.0" }
+cw-storage-plus = { version = "2.0.0" }
+cw-utils = { version = "2.0.0" }
+cw-ownable = "2.1.0"
 
 serde = { version = "1.0.204" }
 schemars = { version = "0.8.15" }
 semver = "1"
 thiserror = { version = "1.0.4" }
 
-cw2 = { version = "1.1.2" }
-cw20 = { version = "1.1.2" }
-cw20-base = { version = "1.1.2", features = ["library"] }
-cw721 = { git = "https://github.com/CosmWasm/cw-nfts", tag = "v0.19.0", package = "cw721" }
+cw2 = { version = "2.0.0" }
+cw20 = { version = "2.0.0" }
+cw20-base = { version = "2.0.0" }
 
