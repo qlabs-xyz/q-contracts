@@ -4,14 +4,13 @@ use cw20::Denom;
 use q_nft::state::NftInfo;
 use q_nft::traits::Cw721CollectionConfig;
 
+/// ConsumptionUnit contract config
 #[cw_serde]
 pub struct CUConfig {
     pub settlement_token: Denom,
     pub native_token: Denom,
     pub price_oracle: Addr,
 }
-
-// NB: another state is reused from CW721
 
 impl Cw721CollectionConfig for CUConfig {}
 

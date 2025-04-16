@@ -3,13 +3,12 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
-use q_nft::state::Cw721Config;
 
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(CUConfig)]
-    GetConfig {},
+    #[returns(q_nft::msg::ContractInfoResponse<CUConfig>)]
+    ContractInfo {},
 
     // TODO add Cw721 config as well
     #[returns(q_nft::msg::OwnerOfResponse)]
@@ -47,9 +46,11 @@ pub enum QueryMsg {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetConfig {} => to_json_binary(&query_get_config(deps)?),
+        QueryMsg::ContractInfo {} => to_json_binary(
+            &q_nft::query::query_contract_info::<CUConfig>(deps.storage)?,
+        ),
         QueryMsg::OwnerOf { token_id } => {
-            to_json_binary(&q_nft::query::query_owner_of(deps, &env, token_id)?)
+            to_json_binary(&q_nft::query::query_owner_of(deps.storage, &env, token_id)?)
         }
         QueryMsg::NumTokens {} => to_json_binary(&q_nft::query::query_num_tokens(deps.storage)?),
         QueryMsg::GetMinterOwnership {} => {
@@ -79,12 +80,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 // Query
-
-fn query_get_config(deps: Deps) -> StdResult<CUConfig> {
-    Cw721Config::<ConsumptionUnitData, CUConfig>::default()
-        .collection_config
-        .load(deps.storage)
-}
 
 #[cfg(test)]
 mod tests {

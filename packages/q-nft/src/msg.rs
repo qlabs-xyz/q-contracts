@@ -1,3 +1,4 @@
+use crate::state::CollectionInfo;
 use cosmwasm_schema::cw_serde;
 
 #[cw_serde]
@@ -16,6 +17,13 @@ pub struct Cw721InstantiateMsg<TCollectionExtensionMsg> {
 
     /// Sets the creator of collection. The creator is the only one eligible to update `CollectionInfo`.
     pub creator: Option<String>,
+}
+
+/// This is a wrapper around CollectionInfo that includes the extension, contract info, and number of tokens (supply).
+#[cw_serde]
+pub struct ContractInfoResponse<TCollectionExtensionMsg> {
+    pub collection_info: CollectionInfo,
+    pub collection_config: TCollectionExtensionMsg,
 }
 
 #[cw_serde]

@@ -2,6 +2,8 @@ use cosmwasm_std::{Addr, Deps, Empty, Env, Order, StdResult, Storage};
 use cw_ownable::Ownership;
 use cw_storage_plus::Bound;
 
+use crate::msg::ContractInfoResponse;
+use crate::traits::Cw721CollectionConfig;
 use crate::{
     msg::{NftInfoResponse, NumTokensResponse, OwnerOfResponse, TokensResponse},
     state::{Cw721Config, CREATOR, MINTER},
@@ -40,10 +42,33 @@ where
     })
 }
 
-pub fn query_owner_of(deps: Deps, _env: &Env, token_id: String) -> StdResult<OwnerOfResponse> {
+pub fn query_contract_info<TCollectionConfig>(
+    storage: &dyn Storage,
+) -> StdResult<ContractInfoResponse<TCollectionConfig>>
+where
+    TCollectionConfig: Cw721CollectionConfig,
+{
+    let info = Cw721Config::<Option<Empty>, TCollectionConfig>::default()
+        .collection_info
+        .load(storage)?;
+    let config = Cw721Config::<Option<Empty>, TCollectionConfig>::default()
+        .collection_config
+        .load(storage)?;
+
+    Ok(ContractInfoResponse {
+        collection_info: info,
+        collection_config: config,
+    })
+}
+
+pub fn query_owner_of(
+    storage: &dyn Storage,
+    _env: &Env,
+    token_id: String,
+) -> StdResult<OwnerOfResponse> {
     let nft_info = Cw721Config::<Option<Empty>, Option<Empty>>::default()
         .nft_info
-        .load(deps.storage, &token_id)?;
+        .load(storage, &token_id)?;
     Ok(OwnerOfResponse {
         owner: nft_info.owner.to_string(),
     })
