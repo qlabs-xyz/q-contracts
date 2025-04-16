@@ -2,7 +2,7 @@ use crate::types::ConsumptionUnitData;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use cw20::Denom;
-use cw721::msg::Cw721InstantiateMsg;
+use q_nft::msg::Cw721InstantiateMsg;
 
 #[cw_serde]
 pub struct ConsumptionUnitCollectionExtension {
@@ -22,10 +22,6 @@ pub enum ExecuteMsg {
         token_id: String,
         /// The owner of the newly minter NFT
         owner: String,
-        /// Universal resource identifier for this NFT
-        /// Should point to a JSON file that conforms to the ERC721
-        /// Metadata JSON Schema
-        token_uri: Option<String>,
         /// Any custom extension used by this contract
         extension: ConsumptionUnitData,
     },

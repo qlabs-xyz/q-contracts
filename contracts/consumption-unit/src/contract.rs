@@ -1,14 +1,13 @@
 use crate::error::ContractError;
 use crate::msg::{ConsumptionUnitExtensionUpdate, ExecuteMsg, InstantiateMsg, MigrateMsg};
-use crate::state::{CUConfig, CU_CONFIG};
-use crate::types::{ConsumptionUnitData, ConsumptionUnitNft, ConsumptionUnitState};
+use crate::types::{CUConfig, ConsumptionUnitData, ConsumptionUnitNft, ConsumptionUnitState};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{DepsMut, Env, Event, MessageInfo, Response};
-use cw721::error::Cw721ContractError;
-use cw721::execute::{assert_minter, check_can_send};
-use cw721::state::{CollectionInfo, Cw721Config};
-use cw721::OwnershipError;
+use cw_ownable::OwnershipError;
+use q_nft::error::Cw721ContractError;
+use q_nft::execute::assert_minter;
+use q_nft::state::{CollectionInfo, Cw721Config};
 
 const CONTRACT_NAME: &str = "gemlabs.io:consumption-unit";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -22,28 +21,23 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> {
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    // TODO save ConsumptionUnitCollectionExtension instead of CUConfig?
     let cfg = CUConfig {
         settlement_token: msg.collection_info_extension.settlement_token.clone(),
         native_token: msg.collection_info_extension.native_token.clone(),
         price_oracle: msg.collection_info_extension.price_oracle.clone(),
     };
 
-    CU_CONFIG.save(deps.storage, &cfg)?;
-
-    // TODO reuse logic from CW721 fully?
-
-    // ---- update collection info before(!) creator and minter is set ----
-    let collection_metadata_msg = CollectionInfo {
+    let collection_info = CollectionInfo {
         name: msg.name,
         symbol: msg.symbol,
         updated_at: env.block.time,
     };
 
-    let config = Cw721Config::<ConsumptionUnitData>::default();
+    let config = Cw721Config::<ConsumptionUnitData, CUConfig>::default();
+    config.collection_config.save(deps.storage, &cfg)?;
     config
         .collection_info
-        .save(deps.storage, &collection_metadata_msg)?;
+        .save(deps.storage, &collection_info)?;
 
     // ---- set minter and creator ----
     // use info.sender if None is passed
@@ -51,18 +45,14 @@ pub fn instantiate(
         Some(minter) => minter,
         None => info.sender.as_str(),
     };
-    cw721::execute::initialize_minter(deps.storage, deps.api, Some(minter))?;
+    q_nft::execute::initialize_minter(deps.storage, deps.api, Some(minter))?;
 
     // use info.sender if None is passed
     let creator: &str = match msg.creator.as_deref() {
         Some(creator) => creator,
         None => info.sender.as_str(),
     };
-    cw721::execute::initialize_creator(deps.storage, deps.api, Some(creator))?;
-
-    if msg.withdraw_address.clone().is_some() {
-        return Err(ContractError::WrongInput {});
-    }
+    q_nft::execute::initialize_creator(deps.storage, deps.api, Some(creator))?;
 
     Ok(Response::default()
         .add_attribute("action", "consumption-unit::instantiate")
@@ -84,9 +74,8 @@ pub fn execute(
         ExecuteMsg::Mint {
             token_id,
             owner,
-            token_uri,
             extension,
-        } => execute_mint(deps, &env, &info, token_id, owner, token_uri, extension),
+        } => execute_mint(deps, &env, &info, token_id, owner, extension),
         ExecuteMsg::Burn { token_id } => execute_burn(deps, &env, &info, token_id),
         ExecuteMsg::UpdateNftInfo {
             token_id,
@@ -102,7 +91,7 @@ fn execute_update_nft_info(
     token_id: String,
     update: ConsumptionUnitExtensionUpdate,
 ) -> Result<Response, ContractError> {
-    let config = Cw721Config::<ConsumptionUnitData>::default();
+    let config = Cw721Config::<ConsumptionUnitData, CUConfig>::default();
 
     match update {
         ConsumptionUnitExtensionUpdate::UpdatePool {
@@ -111,7 +100,7 @@ fn execute_update_nft_info(
             let mut current_nft_info = config.nft_info.load(deps.storage, &token_id)?;
             if current_nft_info.owner != info.sender {
                 return Err(ContractError::Cw721ContractError(
-                    cw721::error::Cw721ContractError::Ownership(OwnershipError::NotOwner),
+                    Cw721ContractError::Ownership(OwnershipError::NotOwner),
                 ));
             }
 
@@ -148,21 +137,18 @@ fn execute_mint(
     info: &MessageInfo,
     token_id: String,
     owner: String,
-    token_uri: Option<String>,
     extension: ConsumptionUnitData,
 ) -> Result<Response, ContractError> {
     assert_minter(deps.storage, &info.sender)?;
     // validate owner
     let owner_addr = deps.api.addr_validate(&owner)?;
 
-    let config = Cw721Config::<ConsumptionUnitData>::default();
+    let config = Cw721Config::<ConsumptionUnitData, CUConfig>::default();
 
     // create the token
 
     let token = ConsumptionUnitNft {
         owner: owner_addr,
-        approvals: vec![],
-        token_uri,
         extension,
     };
 
@@ -186,13 +172,14 @@ fn execute_mint(
 
 fn execute_burn(
     deps: DepsMut,
-    env: &Env,
+    _env: &Env,
     info: &MessageInfo,
     token_id: String,
 ) -> Result<Response, ContractError> {
-    let config = Cw721Config::<ConsumptionUnitData>::default();
-    let token = config.nft_info.load(deps.storage, &token_id)?;
-    check_can_send(deps.as_ref(), env, info.sender.as_str(), &token)?;
+    let config = Cw721Config::<ConsumptionUnitData, CUConfig>::default();
+    // TODO verify ownership
+    // let token = config.nft_info.load(deps.storage, &token_id)?;
+    // check_can_send(deps.as_ref(), env, info.sender.as_str(), &token)?;
 
     config.nft_info.remove(deps.storage, &token_id)?;
     config.decrement_tokens(deps.storage)?;

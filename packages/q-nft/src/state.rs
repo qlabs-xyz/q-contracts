@@ -1,8 +1,8 @@
 use crate::traits::{Cw721CollectionConfig, Cw721State};
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, StdResult, Storage};
+use cosmwasm_std::{Addr, StdResult, Storage, Timestamp};
 use cw_ownable::{OwnershipStore, OWNERSHIP_KEY};
-use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
+use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex};
 
 /// Creator owns this contract and can update collection info!
 /// !!! Important note here: !!!
@@ -12,11 +12,19 @@ pub const CREATOR: OwnershipStore = OwnershipStore::new(OWNERSHIP_KEY);
 /// - minter is stored in the contract storage using cw_ownable::OwnershipStore (same as for OWNERSHIP but with different key)
 pub const MINTER: OwnershipStore = OwnershipStore::new("collection_minter");
 
+#[cw_serde]
+pub struct CollectionInfo {
+    pub name: String,
+    pub symbol: String,
+    pub updated_at: Timestamp,
+}
+
 pub struct Cw721Config<'a, TNftExtension, TCollectionConfig>
 where
     TNftExtension: Cw721State,
     TCollectionConfig: Cw721CollectionConfig,
 {
+    pub collection_info: Item<CollectionInfo>,
     pub collection_config: Item<TCollectionConfig>,
     pub token_count: Item<u64>,
     pub nft_info: IndexedMap<&'a str, NftInfo<TNftExtension>, TokenIndexes<'a, TNftExtension>>,
@@ -30,6 +38,7 @@ where
 {
     fn default() -> Self {
         Self::new(
+            "cw721_collection_info",
             "cw721_collection_config",
             "num_tokens",
             "tokens",
@@ -38,12 +47,13 @@ where
     }
 }
 
-impl<'a, TNftExtension, TCollectionConfig> Cw721Config<'a, TNftExtension, TCollectionConfig>
+impl<TNftExtension, TCollectionConfig> Cw721Config<'_, TNftExtension, TCollectionConfig>
 where
     TNftExtension: Cw721State,
     TCollectionConfig: Cw721CollectionConfig,
 {
     fn new(
+        collection_info_key: &'static str,
         collection_config_key: &'static str,
         token_count_key: &'static str,
         nft_info_key: &'static str,
@@ -53,6 +63,7 @@ where
             owner: MultiIndex::new(token_owner_idx, nft_info_key, nft_info_owner_key),
         };
         Self {
+            collection_info: Item::new(collection_info_key),
             collection_config: Item::new(collection_config_key),
             token_count: Item::new(token_count_key),
             nft_info: IndexedMap::new(nft_info_key, indexes),
@@ -96,7 +107,7 @@ where
     pub owner: MultiIndex<'a, Addr, NftInfo<TNftExtension>, String>,
 }
 
-impl<'a, TNftExtension> IndexList<NftInfo<TNftExtension>> for TokenIndexes<'a, TNftExtension>
+impl<TNftExtension> IndexList<NftInfo<TNftExtension>> for TokenIndexes<'_, TNftExtension>
 where
     TNftExtension: Cw721State,
 {

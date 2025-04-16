@@ -1,9 +1,9 @@
-use crate::state::{CUConfig, CU_CONFIG};
-use crate::types::ConsumptionUnitData;
+use crate::types::{CUConfig, ConsumptionUnitData};
 use cosmwasm_schema::{cw_serde, QueryResponses};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
+use q_nft::state::Cw721Config;
 
 #[cw_serde]
 #[derive(QueryResponses)]
@@ -12,14 +12,10 @@ pub enum QueryMsg {
     GetConfig {},
 
     // TODO add Cw721 config as well
-    #[returns(cw721::msg::OwnerOfResponse)]
-    OwnerOf {
-        token_id: String,
-        /// unset or false will filter out expired approvals, you must set to true to see them
-        include_expired: Option<bool>,
-    },
+    #[returns(q_nft::msg::OwnerOfResponse)]
+    OwnerOf { token_id: String },
 
-    #[returns(cw721::msg::NumTokensResponse)]
+    #[returns(q_nft::msg::NumTokensResponse)]
     NumTokens {},
 
     #[returns(cw_ownable::Ownership<String>)]
@@ -28,12 +24,12 @@ pub enum QueryMsg {
     #[returns(cw_ownable::Ownership<String>)]
     GetCreatorOwnership {},
 
-    #[returns(cw721::msg::NftInfoResponse<ConsumptionUnitData>)]
+    #[returns(q_nft::msg::NftInfoResponse<ConsumptionUnitData>)]
     NftInfo { token_id: String },
 
     /// Returns all tokens owned by the given address.
     /// Same as `AllTokens` but with owner filter.
-    #[returns(cw721::msg::TokensResponse)]
+    #[returns(q_nft::msg::TokensResponse)]
     Tokens {
         owner: String,
         start_after: Option<String>,
@@ -41,7 +37,7 @@ pub enum QueryMsg {
     },
     /// With Enumerable extension.
     /// Requires pagination. Lists all token_ids controlled by the contract.
-    #[returns(cw721::msg::TokensResponse)]
+    #[returns(q_nft::msg::TokensResponse)]
     AllTokens {
         start_after: Option<String>,
         limit: Option<u32>,
@@ -52,30 +48,24 @@ pub enum QueryMsg {
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetConfig {} => to_json_binary(&query_get_config(deps)?),
-        QueryMsg::OwnerOf {
-            token_id,
-            include_expired,
-        } => to_json_binary(&cw721::query::query_owner_of(
-            deps,
-            &env,
-            token_id,
-            include_expired.is_some(),
-        )?),
-        QueryMsg::NumTokens {} => to_json_binary(&cw721::query::query_num_tokens(deps.storage)?),
+        QueryMsg::OwnerOf { token_id } => {
+            to_json_binary(&q_nft::query::query_owner_of(deps, &env, token_id)?)
+        }
+        QueryMsg::NumTokens {} => to_json_binary(&q_nft::query::query_num_tokens(deps.storage)?),
         QueryMsg::GetMinterOwnership {} => {
-            to_json_binary(&cw721::query::query_minter_ownership(deps.storage)?)
+            to_json_binary(&q_nft::query::query_minter_ownership(deps.storage)?)
         }
         QueryMsg::GetCreatorOwnership {} => {
-            to_json_binary(&cw721::query::query_creator_ownership(deps.storage)?)
+            to_json_binary(&q_nft::query::query_creator_ownership(deps.storage)?)
         }
-        QueryMsg::NftInfo { token_id } => to_json_binary(&cw721::query::query_nft_info::<
+        QueryMsg::NftInfo { token_id } => to_json_binary(&q_nft::query::query_nft_info::<
             ConsumptionUnitData,
         >(deps.storage, token_id)?),
         QueryMsg::Tokens {
             owner,
             start_after,
             limit,
-        } => to_json_binary(&cw721::query::query_tokens(
+        } => to_json_binary(&q_nft::query::query_tokens(
             deps,
             &env,
             owner,
@@ -83,7 +73,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             limit,
         )?),
         QueryMsg::AllTokens { start_after, limit } => to_json_binary(
-            &cw721::query::query_all_tokens(deps, &env, start_after, limit)?,
+            &q_nft::query::query_all_tokens(deps, &env, start_after, limit)?,
         ),
     }
 }
@@ -91,7 +81,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 // Query
 
 fn query_get_config(deps: Deps) -> StdResult<CUConfig> {
-    CU_CONFIG.load(deps.storage)
+    Cw721Config::<ConsumptionUnitData, CUConfig>::default()
+        .collection_config
+        .load(deps.storage)
 }
 
 #[cfg(test)]
@@ -101,14 +93,13 @@ mod tests {
     use crate::query::{query, QueryMsg};
     use cosmwasm_std::Addr;
     use cw20::Denom;
-    use cw721::msg::NumTokensResponse;
     use cw_multi_test::{App, ContractWrapper, Executor};
     use cw_ownable::Ownership;
 
     #[test]
     fn test_query_config() {
         let mut app = App::default();
-        let owner = Addr::unchecked("owner");
+        let owner = app.api().addr_make("owner");
 
         let code = ContractWrapper::new(execute, instantiate, query);
         let code_id = app.store_code(Box::new(code));
@@ -123,14 +114,13 @@ mod tests {
             },
             minter: None,
             creator: None,
-            withdraw_address: None,
         };
 
         let contract_addr = app
             .instantiate_contract(code_id, owner.clone(), &init_msg, &[], "cu1", None)
             .unwrap();
 
-        let response: NumTokensResponse = app
+        let response: q_nft::msg::NumTokensResponse = app
             .wrap()
             .query_wasm_smart(contract_addr.clone(), &QueryMsg::NumTokens {})
             .unwrap();

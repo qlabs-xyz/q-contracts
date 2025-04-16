@@ -1,6 +1,5 @@
 [workspace]
-#members = ["contracts/*", "packages/*"]
-members = ["packages/*"]
+members = ["contracts/*", "packages/*"]
 
 # Resolver has to be set explicitely in workspaces, see https://github.com/rust-lang/cargo/issues/9956
 resolver = "2"
@@ -31,4 +30,6 @@ thiserror = { version = "1.0.4" }
 cw2 = { version = "2.0.0" }
 cw20 = { version = "2.0.0" }
 cw20-base = { version = "2.0.0" }
+
+q-nft = { version = "*", path = "./packages/q-nft" }
 

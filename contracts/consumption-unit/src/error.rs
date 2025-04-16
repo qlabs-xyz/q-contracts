@@ -1,5 +1,5 @@
 use cosmwasm_std::StdError;
-use cw721::error::Cw721ContractError;
+use q_nft::error::Cw721ContractError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

@@ -1,6 +1,19 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Decimal, Env, Timestamp, Uint128};
-use cw721::state::NftInfo;
+use cosmwasm_std::{Addr, Decimal, Env, Timestamp, Uint128};
+use cw20::Denom;
+use q_nft::state::NftInfo;
+use q_nft::traits::Cw721CollectionConfig;
+
+#[cw_serde]
+pub struct CUConfig {
+    pub settlement_token: Denom,
+    pub native_token: Denom,
+    pub price_oracle: Addr,
+}
+
+// NB: another state is reused from CW721
+
+impl Cw721CollectionConfig for CUConfig {}
 
 /// ConsumptionUnit public data
 #[cw_serde]
@@ -38,8 +51,8 @@ pub enum ConsumptionUnitState {
 
 pub type ConsumptionUnitNft = NftInfo<ConsumptionUnitData>;
 
-impl cw721::traits::Cw721State for ConsumptionUnitData {}
-impl cw721::traits::Cw721CustomMsg for ConsumptionUnitData {}
+impl q_nft::traits::Cw721State for ConsumptionUnitData {}
+impl q_nft::traits::Cw721CustomMsg for ConsumptionUnitData {}
 
 impl ConsumptionUnitData {
     pub fn update_tier(mut self, new_tier_id: u16, env: &Env) -> Self {

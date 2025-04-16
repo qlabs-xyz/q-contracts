@@ -24,3 +24,7 @@ impl Cw721State for Empty {}
 impl<T> Cw721State for Option<T> where T: Cw721State {}
 
 pub trait Cw721CollectionConfig: Serialize + DeserializeOwned + Clone + Debug {}
+
+impl Cw721CollectionConfig for Empty {}
+
+impl<T> Cw721CollectionConfig for Option<T> where T: Cw721CollectionConfig {}
