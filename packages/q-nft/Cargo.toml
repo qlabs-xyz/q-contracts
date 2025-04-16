@@ -1,0 +1,29 @@
+[package]
+name          = "q-nft"
+description   = "Definition and types for the CosmWasm-721 NFT interface."
+version       = { workspace = true }
+edition       = { workspace = true }
+license       = { workspace = true }
+repository    = { workspace = true }
+homepage      = { workspace = true }
+documentation = { workspace = true }
+
+[lib]
+doctest      = false # disable doc tests
+
+[dependencies]
+cosmwasm-schema = { workspace = true }
+cosmwasm-std    = { workspace = true }
+cw-ownable      = { workspace = true }
+# TODO it references sdk v1.5.4
+#cw-paginate-storage  = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw-utils        = { workspace = true }
+cw2             = { workspace = true }
+schemars        = { workspace = true }
+serde           = { workspace = true }
+thiserror       = { workspace = true }
+#url             = { workspace = true }
+
+[dev-dependencies]
+cw-multi-test   = { workspace = true }

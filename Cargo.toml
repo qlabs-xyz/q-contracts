@@ -8,23 +8,28 @@ resolver = "2"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.78"
+license       = "TODO"
+repository    = "https://github.com/qlabs-xyz/q-contracts"
+homepage      = "TODO"
+documentation = "TODO"
 
 [workspace.dependencies]
 cosmwasm-schema = { version = "2.0.0" }
 cosmwasm-std = { version = "2.0.0" }
 
-cw-controllers = { version = "2.0.0" }
 cw-multi-test = { version = "2.0.0" }
 cw-storage-plus = { version = "2.0.0" }
 cw-utils = { version = "2.0.0" }
 cw-ownable = "2.1.0"
 
 serde = { version = "1.0.204" }
-schemars = { version = "0.8.15"}
+schemars = { version = "0.8.15" }
 semver = "1"
 thiserror = { version = "1.0.4" }
 
 cw2 = { version = "2.0.0" }
 cw20 = { version = "2.0.0" }
 cw20-base = { version = "2.0.0" }
+
+q-nft = { version = "*", path = "./packages/q-nft" }
 
