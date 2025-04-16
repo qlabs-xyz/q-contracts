@@ -902,7 +902,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "all_allowances": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -919,6 +920,7 @@
           }
         }
       },
+      "additionalProperties": false,
       "definitions": {
         "AllowanceInfo": {
           "type": "object",
@@ -1020,6 +1022,7 @@
           }
         }
       },
+      "additionalProperties": false,
       "definitions": {
         "Expiration": {
           "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
@@ -1122,6 +1125,7 @@
           "$ref": "#/definitions/Expiration"
         }
       },
+      "additionalProperties": false,
       "definitions": {
         "Expiration": {
           "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
@@ -1275,6 +1279,7 @@
           ]
         }
       },
+      "additionalProperties": false,
       "definitions": {
         "Addr": {
           "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
